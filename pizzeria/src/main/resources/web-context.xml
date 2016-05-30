@@ -16,7 +16,7 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 
 	<mvc:annotation-driven />
-	<context:component-scan base-package="com.soa.oauth.controller" />
+	<context:component-scan base-package="org.guille.pizzeria.controller" />
 	
 	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
     	<property name="basename" value="messages"/>
