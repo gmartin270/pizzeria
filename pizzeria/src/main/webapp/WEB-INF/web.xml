@@ -56,7 +56,7 @@
 	
 	<context-param>
 		<param-name>parentContextKey</param-name>
-		<param-value>com.soa.oauth.context</param-value>
+		<param-value>org.guille.pizzeria.context</param-value>
 	</context-param>
 		
 </web-app>
