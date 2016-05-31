@@ -4,7 +4,9 @@ import java.util.Properties;
 
 import org.guille.pizzeria.model.Cliente;
 import org.guille.pizzeria.model.Combo;
+import org.guille.pizzeria.model.DetallePedido;
 import org.guille.pizzeria.model.GenericObject;
+import org.guille.pizzeria.model.Pedido;
 import org.guille.pizzeria.model.Producto;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
@@ -29,6 +31,8 @@ public class SqlSchemaGenerator {
 		config.addAnnotatedClass(Cliente.class);
 		config.addAnnotatedClass(Producto.class);
 		config.addAnnotatedClass(Combo.class);
+		config.addAnnotatedClass(Pedido.class);
+		config.addAnnotatedClass(DetallePedido.class);
 		
 		SchemaExport schemaExport = new SchemaExport(config);
 		schemaExport.setDelimiter(";");

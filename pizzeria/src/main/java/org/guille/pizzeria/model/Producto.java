@@ -15,7 +15,7 @@ public class Producto extends GenericObject{
 	@Column(name="DESCRIPCION", nullable=false, unique=true)
 	private String descripcion;
 	
-	@Column(name="PRECIO", nullable=false, unique=true)
+	@Column(name="PRECIO", nullable=false)
 	private Double precio;
 	
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "componente", targetEntity=Combo.class)
