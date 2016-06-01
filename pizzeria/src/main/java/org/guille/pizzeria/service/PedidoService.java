@@ -1,5 +1,6 @@
 package org.guille.pizzeria.service;
 
+import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
@@ -10,6 +11,9 @@ import javax.annotation.PostConstruct;
 import org.guille.pizzeria.dao.DetallePedidoDao;
 import org.guille.pizzeria.dao.IDetallePedidoDao;
 import org.guille.pizzeria.dao.IGenericDao;
+import org.guille.pizzeria.dao.IPedidoDao;
+import org.guille.pizzeria.dao.PedidoDao;
+import org.guille.pizzeria.dto.ClienteDto;
 import org.guille.pizzeria.dto.DetallePedidoDto;
 import org.guille.pizzeria.dto.PedidoDto;
 import org.guille.pizzeria.model.Cliente;
@@ -36,13 +40,72 @@ public class PedidoService {
 	IGenericDao<DetallePedido, Long> detallePedidoDao;
 	
 	IDetallePedidoDao detallePedidoParticular;
+	IPedidoDao pedidoParticular;
 	
 	@PostConstruct
 	public void init(){
 		detallePedidoParticular = (DetallePedidoDao)detallePedidoDao;
+		pedidoParticular = (PedidoDao)pedidoDao;
 	}
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+	
+	@Transactional(readOnly    = false, 
+		       propagation = Propagation.REQUIRED, 
+	           rollbackFor = Exception.class)
+	public List<PedidoDto> consultarPedidos(PedidoDto pedidoDto) throws Exception{
+		List<Pedido> pedidos = null;
+		List<PedidoDto> pedidoDtos = null;
+		PedidoDto item = null;
+		
+		if(pedidoDto != null){
+			Pedido pedido = new Pedido();
+			
+			pedido.setId(pedidoDto.getId());
+			
+			if(pedidoDto.getCliente() != null){
+				Cliente cliente = clienteDao.load(pedidoDto.getCliente().getId());
+				
+				if(cliente == null)
+					throw new Exception("Cliente inexistente.");
+				
+				pedido.setCliente(cliente);
+			}
+			
+			if(pedidoDto.getFecha() != null)
+				pedido.setFecha(Date.valueOf(pedidoDto.getFecha()));
+			
+			if(pedidoDto.getEstado() != null && pedidoDto.getEstado().length() > 0)
+				pedido.setEstado(EstadoType.valueOf(pedidoDto.getEstado()));
+			
+			pedidos = pedidoParticular.obtenerPedidosByCriteria(pedido);
+		}else
+			pedidos = pedidoParticular.getAll();
+		
+		for (Pedido pedido : pedidos) {
+			item = new PedidoDto();
+			item.setId(pedido.getId());
+			
+			ClienteDto clienteDto = new ClienteDto();
+			clienteDto.setId(pedido.getCliente().getId());
+			clienteDto.setNombre(pedido.getCliente().getNombre());
+			clienteDto.setDireccion(pedido.getCliente().getDireccion());
+			clienteDto.setEmail(pedido.getCliente().getEmail());
+			clienteDto.setTelefono(pedido.getCliente().getTelefono());
+			
+			item.setCliente(clienteDto);
+			item.setDelivery(pedido.isDelivery());
+			item.setEstado(pedido.getEstado().toString());
+			item.setFecha(sdf.format(pedido.getFecha()));
+			
+			if(pedidoDtos == null)
+				pedidoDtos = new ArrayList<PedidoDto>();
+			
+			pedidoDtos.add(item);
+		}
+		
+		return pedidoDtos;
+	}
 	
 	@Transactional(readOnly    = false, 
 				   propagation = Propagation.REQUIRED, 
