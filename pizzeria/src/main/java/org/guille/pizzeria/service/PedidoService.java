@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
+import org.guille.pizzeria.dao.DetallePedidoDao;
+import org.guille.pizzeria.dao.IDetallePedidoDao;
 import org.guille.pizzeria.dao.IGenericDao;
 import org.guille.pizzeria.dto.DetallePedidoDto;
 import org.guille.pizzeria.dto.PedidoDto;
@@ -30,6 +34,13 @@ public class PedidoService {
 	
 	@Autowired
 	IGenericDao<DetallePedido, Long> detallePedidoDao;
+	
+	IDetallePedidoDao detallePedidoParticular;
+	
+	@PostConstruct
+	public void init(){
+		detallePedidoParticular = (DetallePedidoDao)detallePedidoDao;
+	}
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 	
@@ -77,5 +88,57 @@ public class PedidoService {
 		}
 		
 		return pedidoDto;
+	}
+	
+	@Transactional(readOnly    = false, 
+			   	   propagation = Propagation.REQUIRED, 
+			   	   rollbackFor = Exception.class)
+	public void actualizarEstado(String id, String estadoNuevo) throws Exception{
+		
+		Long idPedido = new Long(id);
+		
+		String validacion = validarCambioEstado(idPedido, EstadoType.valueOf(estadoNuevo)); 
+		
+		if(validacion.length() > 0)
+			throw new Exception(validacion);
+		else{
+			Pedido pedido = pedidoDao.load(idPedido);
+			List<DetallePedido> detalle = detallePedidoParticular.getDetalleByPedido(pedido);
+			
+			pedido.setDetalle(detalle);
+			pedido.setEstado(EstadoType.valueOf(estadoNuevo));
+			
+			pedidoDao.saveOrUpdate(pedido);
+		}	
+	}
+	
+	private String validarCambioEstado(Long idPedido, EstadoType estadoNuevo){
+		String resultado = "";
+		final String transicionIncorrecta = "No es posible realizar la transicion especificada.";
+		
+		Pedido pedido = pedidoDao.load(idPedido);		
+		EstadoType estadoActual = pedido.getEstado();
+		
+		if(estadoNuevo.compareTo(estadoActual) >= 0){
+			switch(estadoActual){
+			case INICIAL:
+				if(estadoNuevo.ordinal() > 2)
+					resultado = transicionIncorrecta;
+				
+				break;
+			case CANCELADO:
+				resultado = transicionIncorrecta;
+				break;
+			case ENTREGAR:
+				break;
+			default:
+				if(estadoActual.ordinal() + 1 != estadoNuevo.ordinal())
+					resultado = transicionIncorrecta;				
+			}
+		}else{
+			resultado = "No es posible pasar a un estado anterior al actual";
+		}
+		
+		return resultado;
 	}
 }

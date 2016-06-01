@@ -15,8 +15,9 @@ public class ClienteService {
 	@Autowired
 	IGenericDao<Cliente, Long> clienteDao;
 
-	@Transactional(readOnly = false, 
-			propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+	@Transactional(readOnly    = false, 
+				   propagation = Propagation.REQUIRED, 
+			       rollbackFor = Exception.class)
 	public ClienteDto nuevoCliente(ClienteDto clienteDto) throws Exception{
 		
 		if(clienteDto != null){
